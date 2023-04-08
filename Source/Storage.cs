@@ -18,7 +18,7 @@ namespace StorageRefrigeratorThresholds
         private int activateValue = 100;
 
         [Serialize]
-        private int deactivateValue = 0;
+        private int deactivateValue = 99;
 
         [Serialize]
         private bool activated;
