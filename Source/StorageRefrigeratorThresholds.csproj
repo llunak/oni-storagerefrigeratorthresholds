@@ -3,7 +3,7 @@
     <OutputPath>..\</OutputPath>
     <TargetFramework>net471</TargetFramework>
     <AssemblyTitle>Storage Refrigerator Thresholds</AssemblyTitle>
-    <AssemblyVersion>2023.0408.3</AssemblyVersion>
+    <AssemblyVersion>2023.0412.1</AssemblyVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
