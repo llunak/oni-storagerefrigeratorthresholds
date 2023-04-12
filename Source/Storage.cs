@@ -228,6 +228,8 @@ namespace StorageRefrigeratorThresholds
     [HarmonyPatch]
     public class OtherMods_Patch
     {
+        private static bool suppressExceptions = true;
+
         public static IEnumerable<MethodBase> TargetMethods()
         {
             string[] methods =
@@ -250,9 +252,13 @@ namespace StorageRefrigeratorThresholds
             {
                 MethodInfo info = AccessTools.Method( method + ":DoPostConfigureComplete");
                 if( info != null )
+                {
+                    suppressExceptions = false;
                     yield return info;
+                }
             }
         }
+
         public static void Prefix(GameObject go)
         {
             go.AddOrGet<RefrigeratorThresholds>();
@@ -260,10 +266,12 @@ namespace StorageRefrigeratorThresholds
 
         // If none of the mods are installed and TargetMethod() thus returns an empty list,
         // Harmony will try to patch normally, so it'll try to Prefix a non-existent method.
-        // Catch and ignore the exception.
-        static Exception Cleanup(Exception e)
+        // Ignore the exception if we haven't found any mod methods to patch.
+        public static Exception Cleanup(Exception e)
         {
-            return null;
+            if( suppressExceptions )
+                return null;
+            return e;
         }
     }
 }
