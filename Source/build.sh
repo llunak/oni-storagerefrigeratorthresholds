@@ -1,9 +1,10 @@
 #! /bin/bash
-FrameworkPathOverride=$(dirname $(which mono))/../lib/mono/4.7.2-api/ dotnet build StorageRefrigeratorThresholds.csproj /property:Configuration=Release
+name=StorageRefrigeratorThresholds
+FrameworkPathOverride=$(dirname $(which mono))/../lib/mono/4.7.1-api/ dotnet build $name.csproj /property:Configuration=Release
 if test $? -eq 0; then
     # no idea why these get created, but they break game loading
     shopt -s extglob
-    rm -f $(ls -1 ../*.dll | grep -v StorageRefrigeratorThresholds)
+    rm -f $(ls -1 ../*.dll | grep -v $name)
 fi
-version=$(cat StorageRefrigeratorThresholds.csproj | grep AssemblyVersion | sed 's#.*<AssemblyVersion>\(.*\)</AssemblyVersion>.*#\1#')
+version=$(cat $name.csproj | grep AssemblyVersion | sed 's#.*<AssemblyVersion>\(.*\)</AssemblyVersion>.*#\1#')
 sed -i "s/version: .*/version: $version/" ../mod_info.yaml
