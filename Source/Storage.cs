@@ -3,6 +3,8 @@ using UnityEngine;
 using KSerialization;
 using STRINGS;
 using System.Reflection;
+using System.Collections.Generic;
+using System;
 
 namespace StorageRefrigeratorThresholds
 {
@@ -131,6 +133,8 @@ namespace StorageRefrigeratorThresholds
             Operational ___operational, LogicPorts ___ports)
         {
             StorageThresholds component = __instance.gameObject.GetComponent<StorageThresholds>();
+            if( component == null )
+                return true;
             float stored = (float) getAmountStoredMethod.Invoke(___filteredStorage, null );
             float capacity = (float) getMaxCapacityMethod.Invoke(___filteredStorage, null );
             bool num = component.UpdateLogicState( stored / capacity );
@@ -196,6 +200,8 @@ namespace StorageRefrigeratorThresholds
             Operational ___operational, LogicPorts ___ports)
         {
             RefrigeratorThresholds component = __instance.gameObject.GetComponent<RefrigeratorThresholds>();
+            if( component == null )
+                return true;
             float stored = (float) getAmountStoredMethod.Invoke(___filteredStorage, null );
             float capacity = (float) getMaxCapacityMethod.Invoke(___filteredStorage, null );
             bool num = component.UpdateLogicState( stored / capacity );
@@ -215,6 +221,49 @@ namespace StorageRefrigeratorThresholds
         public static void DoPostConfigureComplete(GameObject go)
         {
             go.AddOrGet<RefrigeratorThresholds>();
+        }
+    }
+
+    // Optionally support storage from other mods.
+    [HarmonyPatch]
+    public class OtherMods_Patch
+    {
+        public static IEnumerable<MethodBase> TargetMethods()
+        {
+            string[] methods =
+            {
+                // Freezer
+                "Psyko.Freezer.FreezerConfig",
+                // Dupes Refrigeration
+                "Advanced_Refrigeration.CompressorUnitConfig",
+                "Advanced_Refrigeration.FridgeAdvancedConfig",
+                "Advanced_Refrigeration.FridgeBlueConfig",
+                "Advanced_Refrigeration.FridgePodConfig",
+                "Advanced_Refrigeration.FridgeRedConfig",
+                "Advanced_Refrigeration.FridgeYellowConfig",
+                "Advanced_Refrigeration.HightechBigFridgeConfig",
+                "Advanced_Refrigeration.HightechSmallFridgeConfig",
+                "Advanced_Refrigeration.SimpleFridgeConfig",
+                "Advanced_Refrigeration.SpaceBoxConfig",
+            };
+            foreach( string method in methods )
+            {
+                MethodInfo info = AccessTools.Method( method + ":DoPostConfigureComplete");
+                if( info != null )
+                    yield return info;
+            }
+        }
+        public static void Prefix(GameObject go)
+        {
+            go.AddOrGet<RefrigeratorThresholds>();
+        }
+
+        // If none of the mods are installed and TargetMethod() thus returns an empty list,
+        // Harmony will try to patch normally, so it'll try to Prefix a non-existent method.
+        // Catch and ignore the exception.
+        static Exception Cleanup(Exception e)
+        {
+            return null;
         }
     }
 }
