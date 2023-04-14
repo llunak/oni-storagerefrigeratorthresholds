@@ -225,53 +225,12 @@ namespace StorageRefrigeratorThresholds
     }
 
     // Optionally support storage from other mods.
-    [HarmonyPatch]
+//    [HarmonyPatch]
     public class OtherMods_Patch
     {
-        private static bool suppressExceptions = true;
-
-        public static IEnumerable<MethodBase> TargetMethods()
-        {
-            string[] methods =
-            {
-                // Freezer
-                "Psyko.Freezer.FreezerConfig",
-                // Dupes Refrigeration
-                "Advanced_Refrigeration.CompressorUnitConfig",
-                "Advanced_Refrigeration.FridgeAdvancedConfig",
-                "Advanced_Refrigeration.FridgeBlueConfig",
-                "Advanced_Refrigeration.FridgePodConfig",
-                "Advanced_Refrigeration.FridgeRedConfig",
-                "Advanced_Refrigeration.FridgeYellowConfig",
-                "Advanced_Refrigeration.HightechBigFridgeConfig",
-                "Advanced_Refrigeration.HightechSmallFridgeConfig",
-                "Advanced_Refrigeration.SimpleFridgeConfig",
-                "Advanced_Refrigeration.SpaceBoxConfig",
-            };
-            foreach( string method in methods )
-            {
-                MethodInfo info = AccessTools.Method( method + ":DoPostConfigureComplete");
-                if( info != null )
-                {
-                    suppressExceptions = false;
-                    yield return info;
-                }
-            }
-        }
-
-        public static void Prefix(GameObject go)
+        public static void DoPostConfigureComplete(GameObject go)
         {
             go.AddOrGet<RefrigeratorThresholds>();
-        }
-
-        // If none of the mods are installed and TargetMethod() thus returns an empty list,
-        // Harmony will try to patch normally, so it'll try to Prefix a non-existent method.
-        // Ignore the exception if we haven't found any mod methods to patch.
-        public static Exception Cleanup(Exception e)
-        {
-            if( suppressExceptions )
-                return null;
-            return e;
         }
     }
 }
