@@ -156,6 +156,13 @@ namespace StorageRefrigeratorThresholds
         {
             go.AddOrGet<StorageThresholds>();
         }
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(CreateBuildingDef))]
+        public static void CreateBuildingDef( ref BuildingDef __result )
+        {
+            if( Options.Instance.ReducedSmartStorageBinRequiredPower )
+                __result.EnergyConsumptionWhenActive = 30f;
+        }
     }
 
     public class RefrigeratorThresholds : ThresholdsBase
