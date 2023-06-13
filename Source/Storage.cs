@@ -14,8 +14,20 @@ namespace StorageRefrigeratorThresholds
     // with this one.
     // The rest is using the same logic as BatterySmart or SmartReservoir,
     // only activate and deactivate must be swapped (since here green means full).
+    // But provide an option to not swap the logic, which has also additional
+    // advantages (swapped logic requires not gate for detecting not-enough,
+    // which causes false alarms on game start or when power goes out, both
+    // of which result in red signal, negated to green and activating notifier).
     public abstract class ThresholdsBase : KMonoBehaviour, IActivationRangeTarget
     {
+        [Serialize]
+        public bool sendGreenOnLow = false;
+
+        // Note that the naming is a mess, BatterySmart and SmartReservoir make
+        // Activate propery get and set deactivateValue and vice versa,
+        // and "activate" in the interface actually usually means "high"
+        // and "deactivate" means "low", regardless of what it does.
+        // Keep the high/low meaning here, so activate is high regardless of function.
         [Serialize]
         private int activateValue = 100;
 
@@ -57,15 +69,21 @@ namespace StorageRefrigeratorThresholds
 
         public bool UseWholeNumbers => true;
 
-        public string ActivateTooltip => STRINGS.STORAGEREFRIGERATORTHRESHOLDS.ACTIVATE_TOOLTIP;
+        public string ActivateTooltip => sendGreenOnLow
+            ? STRINGS.STORAGEREFRIGERATORTHRESHOLDS.ACTIVATE_TOOLTIP_GREENONLOW
+            : STRINGS.STORAGEREFRIGERATORTHRESHOLDS.ACTIVATE_TOOLTIP;
 
-        public string DeactivateTooltip => STRINGS.STORAGEREFRIGERATORTHRESHOLDS.DEACTIVATE_TOOLTIP;
+        public string DeactivateTooltip => sendGreenOnLow
+            ? STRINGS.STORAGEREFRIGERATORTHRESHOLDS.DEACTIVATE_TOOLTIP_GREENONLOW
+            : STRINGS.STORAGEREFRIGERATORTHRESHOLDS.DEACTIVATE_TOOLTIP;
 
-        // These strings are reusable, except that activate and deactivate are inverted.
+        // These strings are reusable.
         public string ActivationRangeTitleText => BUILDINGS.PREFABS.SMARTRESERVOIR.SIDESCREEN_TITLE;
 
+        // "High Threshold:"
         public string ActivateSliderLabelText => BUILDINGS.PREFABS.SMARTRESERVOIR.SIDESCREEN_DEACTIVATE;
 
+        // "Low Threshold:"
         public string DeactivateSliderLabelText => BUILDINGS.PREFABS.SMARTRESERVOIR.SIDESCREEN_ACTIVATE;
 
         public bool UpdateLogicState(float percentFull)
@@ -73,15 +91,18 @@ namespace StorageRefrigeratorThresholds
             float num = Mathf.RoundToInt(percentFull * 100f);
             if (activated)
             {
-                if (num <= (float)deactivateValue)
+                if (sendGreenOnLow ? (num >= (float)activateValue) : (num <= (float)deactivateValue))
                     activated = false;
             }
-            else if (num >= (float)activateValue)
-                activated = true;
+            else
+            {
+                if (sendGreenOnLow ? (num <= (float)deactivateValue) : (num >= (float)activateValue))
+                    activated = true;
+            }
             return activated;
         }
 
-        protected abstract void UpdateLogicCircuit();
+        public abstract void UpdateLogicCircuit();
     }
 
     public class StorageThresholds : ThresholdsBase
@@ -89,7 +110,7 @@ namespace StorageRefrigeratorThresholds
         private static readonly MethodInfo updateLogicAndActiveStateMethod
             = AccessTools.Method(typeof(StorageLockerSmart),"UpdateLogicAndActiveState");
 
-        protected override void UpdateLogicCircuit()
+        public override void UpdateLogicCircuit()
         {
             updateLogicAndActiveStateMethod.Invoke( GetComponent<StorageLockerSmart>(), null );
         }
@@ -112,6 +133,7 @@ namespace StorageRefrigeratorThresholds
                 StorageThresholds otherComponent = otherGameObject.GetComponent<StorageThresholds>();
                 if (component != null && otherComponent != null)
                 {
+                    component.sendGreenOnLow = otherComponent.sendGreenOnLow;
                     component.ActivateValue = otherComponent.ActivateValue;
                     component.DeactivateValue = otherComponent.DeactivateValue;
                 }
@@ -170,7 +192,7 @@ namespace StorageRefrigeratorThresholds
         private static readonly MethodInfo updateLogicCircuitMethod
             = AccessTools.Method(typeof(Refrigerator),"UpdateLogicCircuit");
 
-        protected override void UpdateLogicCircuit()
+        public override void UpdateLogicCircuit()
         {
             updateLogicCircuitMethod.Invoke( GetComponent<Refrigerator>(), null );
         }
@@ -195,6 +217,7 @@ namespace StorageRefrigeratorThresholds
                 RefrigeratorThresholds otherComponent = otherGameObject.GetComponent<RefrigeratorThresholds>();
                 if (component != null && otherComponent != null)
                 {
+                    component.sendGreenOnLow = otherComponent.sendGreenOnLow;
                     component.ActivateValue = otherComponent.ActivateValue;
                     component.DeactivateValue = otherComponent.DeactivateValue;
                 }
