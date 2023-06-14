@@ -183,7 +183,7 @@ namespace StorageRefrigeratorThresholds
         public static void CreateBuildingDef( ref BuildingDef __result )
         {
             if( Options.Instance.ReducedSmartStorageBinRequiredPower )
-                __result.EnergyConsumptionWhenActive = 30f;
+                __result.EnergyConsumptionWhenActive = 20f;
         }
     }
 

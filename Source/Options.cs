@@ -9,7 +9,7 @@ namespace StorageRefrigeratorThresholds
     [ConfigFile(SharedConfigLocation: true)]
     public sealed class Options : SingletonOptions< Options >, IOptions
     {
-        [Option("Reduced Smart Storage Bin Required Power", "Halves the required power for Smart Storage Bin to 30W.")]
+        [Option("Reduced Smart Storage Bin Required Power", "Reduces the required power for Smart Storage Bin to 20W.")]
         [JsonProperty]
         public bool ReducedSmartStorageBinRequiredPower { get; set; } = false;
 
