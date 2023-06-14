@@ -21,7 +21,7 @@ namespace StorageRefrigeratorThresholds
     public abstract class ThresholdsBase : KMonoBehaviour, IActivationRangeTarget
     {
         [Serialize]
-        public bool sendGreenOnLow = false;
+        private bool sendGreenOnLow = false;
 
         // Note that the naming is a mess, BatterySmart and SmartReservoir make
         // Activate propery get and set deactivateValue and vice versa,
@@ -36,6 +36,20 @@ namespace StorageRefrigeratorThresholds
 
         [Serialize]
         private bool activated;
+
+        public bool SendGreenOnLow
+        {
+            get
+            {
+                return sendGreenOnLow;
+            }
+            set
+            {
+                sendGreenOnLow = value;
+                UpdateLogicCircuit();
+                UpdateLogicPortTooltip();
+            }
+        }
 
         public float ActivateValue
         {
@@ -102,7 +116,24 @@ namespace StorageRefrigeratorThresholds
             return activated;
         }
 
-        public abstract void UpdateLogicCircuit();
+        protected override void OnSpawn()
+        {
+            base.OnSpawn();
+            UpdateLogicPortTooltip();
+        }
+
+        private void UpdateLogicPortTooltip()
+        {
+            LogicPorts ports = GetComponent< LogicPorts >();
+            ports.outputPortInfo[ 0 ].activeDescription = sendGreenOnLow
+                ? STRINGS.STORAGEREFRIGERATORTHRESHOLDS.LOGIC_PORT_ACTIVE_GREENONLOW
+                : STRINGS.STORAGEREFRIGERATORTHRESHOLDS.LOGIC_PORT_ACTIVE;
+            ports.outputPortInfo[ 0 ].inactiveDescription = sendGreenOnLow
+                ? STRINGS.STORAGEREFRIGERATORTHRESHOLDS.LOGIC_PORT_INACTIVE_GREENONLOW
+                : STRINGS.STORAGEREFRIGERATORTHRESHOLDS.LOGIC_PORT_INACTIVE;
+        }
+
+        protected abstract void UpdateLogicCircuit();
     }
 
     public class StorageThresholds : ThresholdsBase
@@ -110,7 +141,7 @@ namespace StorageRefrigeratorThresholds
         private static readonly MethodInfo updateLogicAndActiveStateMethod
             = AccessTools.Method(typeof(StorageLockerSmart),"UpdateLogicAndActiveState");
 
-        public override void UpdateLogicCircuit()
+        protected override void UpdateLogicCircuit()
         {
             updateLogicAndActiveStateMethod.Invoke( GetComponent<StorageLockerSmart>(), null );
         }
@@ -133,7 +164,7 @@ namespace StorageRefrigeratorThresholds
                 StorageThresholds otherComponent = otherGameObject.GetComponent<StorageThresholds>();
                 if (component != null && otherComponent != null)
                 {
-                    component.sendGreenOnLow = otherComponent.sendGreenOnLow;
+                    component.SendGreenOnLow = otherComponent.SendGreenOnLow;
                     component.ActivateValue = otherComponent.ActivateValue;
                     component.DeactivateValue = otherComponent.DeactivateValue;
                 }
@@ -192,10 +223,11 @@ namespace StorageRefrigeratorThresholds
         private static readonly MethodInfo updateLogicCircuitMethod
             = AccessTools.Method(typeof(Refrigerator),"UpdateLogicCircuit");
 
-        public override void UpdateLogicCircuit()
+        protected override void UpdateLogicCircuit()
         {
             updateLogicCircuitMethod.Invoke( GetComponent<Refrigerator>(), null );
         }
+
     }
 
     [HarmonyPatch(typeof(Refrigerator))]
@@ -217,7 +249,7 @@ namespace StorageRefrigeratorThresholds
                 RefrigeratorThresholds otherComponent = otherGameObject.GetComponent<RefrigeratorThresholds>();
                 if (component != null && otherComponent != null)
                 {
-                    component.sendGreenOnLow = otherComponent.sendGreenOnLow;
+                    component.SendGreenOnLow = otherComponent.SendGreenOnLow;
                     component.ActivateValue = otherComponent.ActivateValue;
                     component.DeactivateValue = otherComponent.DeactivateValue;
                 }

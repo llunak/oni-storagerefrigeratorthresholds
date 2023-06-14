@@ -76,7 +76,7 @@ namespace StorageRefrigeratorThresholds
         {
             if( target == null || checkbox == null )
                 return;
-            PCheckBox.SetCheckState( checkbox, target.sendGreenOnLow
+            PCheckBox.SetCheckState( checkbox, target.SendGreenOnLow
                 ? PCheckBox.STATE_CHECKED : PCheckBox.STATE_UNCHECKED );
         }
 
@@ -84,8 +84,7 @@ namespace StorageRefrigeratorThresholds
         {
             int newState = state == PCheckBox.STATE_CHECKED ? PCheckBox.STATE_UNCHECKED : PCheckBox.STATE_CHECKED;
             PCheckBox.SetCheckState( checkbox, newState );
-            target.sendGreenOnLow = ( newState == PCheckBox.STATE_CHECKED );
-            target.UpdateLogicCircuit();
+            target.SendGreenOnLow = ( newState == PCheckBox.STATE_CHECKED );
             UpdateActiveRangeSideScreenTooltips();
         }
 
