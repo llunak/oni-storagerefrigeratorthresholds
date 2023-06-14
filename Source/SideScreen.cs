@@ -96,7 +96,6 @@ namespace StorageRefrigeratorThresholds
             GameObject parent = PUIUtils.GetParent( gameObject );
             if( parent == null ) // huh?
                 return;
-            PUIUtils.DebugObjectTree(parent);
             // The game object is called 'Activation...' and not 'Active...'.
             Transform transform = parent.transform.Find("ActivationRangeSideScreen");
             if( transform == null )
