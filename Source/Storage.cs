@@ -134,6 +134,18 @@ namespace StorageRefrigeratorThresholds
         }
 
         protected abstract void UpdateLogicCircuit();
+
+        // GetComponent() calls may add up being somewhat expensive when called often,
+        // so instead cache the mapping.
+        private static Dictionary< GameObject, ThresholdsBase > fastMap
+            = new Dictionary< GameObject, ThresholdsBase >();
+
+        public static ThresholdsBase Get( GameObject gameObject )
+        {
+            if( fastMap.TryGetValue( gameObject, out ThresholdsBase thresholds ))
+                return thresholds;
+            return null;
+        }
     }
 
     public class StorageThresholds : ThresholdsBase
@@ -185,7 +197,7 @@ namespace StorageRefrigeratorThresholds
         public static bool UpdateLogicAndActiveState(StorageLockerSmart __instance, FilteredStorage ___filteredStorage,
             Operational ___operational, LogicPorts ___ports)
         {
-            StorageThresholds component = __instance.gameObject.GetComponent<StorageThresholds>();
+            ThresholdsBase component = ThresholdsBase.Get(__instance.gameObject );
             if( component == null )
                 return true;
             float stored = (float) getAmountStoredMethod.Invoke(___filteredStorage, null );
@@ -261,7 +273,7 @@ namespace StorageRefrigeratorThresholds
         public static bool UpdateLogicCircuit(Refrigerator __instance, FilteredStorage ___filteredStorage,
             Operational ___operational, LogicPorts ___ports)
         {
-            RefrigeratorThresholds component = __instance.gameObject.GetComponent<RefrigeratorThresholds>();
+            ThresholdsBase component = ThresholdsBase.Get(__instance.gameObject );
             if( component == null )
                 return true;
             float stored = (float) getAmountStoredMethod.Invoke(___filteredStorage, null );
