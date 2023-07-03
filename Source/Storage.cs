@@ -119,7 +119,14 @@ namespace StorageRefrigeratorThresholds
         protected override void OnSpawn()
         {
             base.OnSpawn();
+            fastMap[ gameObject ] = this;
             UpdateLogicPortTooltip();
+        }
+
+        protected override void OnCleanUp()
+        {
+            fastMap.Remove( gameObject );
+            base.OnCleanUp();
         }
 
         private void UpdateLogicPortTooltip()
