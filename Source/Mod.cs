@@ -16,6 +16,7 @@ namespace StorageRefrigeratorThresholds
         }
         public override void OnAllModsLoaded(Harmony harmony, IReadOnlyList<KMod.Mod> mods)
         {
+            base.OnAllModsLoaded( harmony, mods );
             OtherMods_Patch.Patch( harmony );
         }
     }
