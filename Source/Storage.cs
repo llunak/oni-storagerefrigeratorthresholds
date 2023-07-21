@@ -37,6 +37,8 @@ namespace StorageRefrigeratorThresholds
         [Serialize]
         private bool activated;
 
+        private bool activatedSet = false;
+
         public bool SendGreenOnLow
         {
             get
@@ -113,6 +115,14 @@ namespace StorageRefrigeratorThresholds
                 if (sendGreenOnLow ? (num <= (float)deactivateValue) : (num >= (float)activateValue))
                     activated = true;
             }
+            activatedSet = true;
+            return activated;
+        }
+
+        public bool? LastActivated()
+        {
+            if( !activatedSet )
+                return null;
             return activated;
         }
 
@@ -120,6 +130,7 @@ namespace StorageRefrigeratorThresholds
         {
             base.OnSpawn();
             fastMap[ gameObject ] = this;
+            activatedSet = false;
             UpdateLogicPortTooltip();
         }
 
@@ -209,10 +220,12 @@ namespace StorageRefrigeratorThresholds
                 return true;
             float stored = (float) getAmountStoredMethod.Invoke(___filteredStorage, null );
             float capacity = (float) getMaxCapacityMethod.Invoke(___filteredStorage, null );
-            bool num = component.UpdateLogicState( stored / capacity );
             bool isOperational = ___operational.IsOperational;
+            bool? oldFlag = component.LastActivated() & isOperational;
+            bool num = component.UpdateLogicState( stored / capacity );
             bool flag = num && isOperational;
-            ___ports.SendSignal(FilteredStorage.FULL_PORT_ID, flag ? 1 : 0);
+            if( flag != oldFlag )
+                ___ports.SendSignal(FilteredStorage.FULL_PORT_ID, flag ? 1 : 0);
             ___filteredStorage.SetLogicMeter(flag);
             ___operational.SetActive(isOperational);
             return false; // skip the original
@@ -285,10 +298,12 @@ namespace StorageRefrigeratorThresholds
                 return true;
             float stored = (float) getAmountStoredMethod.Invoke(___filteredStorage, null );
             float capacity = (float) getMaxCapacityMethod.Invoke(___filteredStorage, null );
-            bool num = component.UpdateLogicState( stored / capacity );
             bool isOperational = ___operational.IsOperational;
+            bool? oldFlag = component.LastActivated() & isOperational;
+            bool num = component.UpdateLogicState( stored / capacity );
             bool flag = num && isOperational;
-            ___ports.SendSignal(FilteredStorage.FULL_PORT_ID, flag ? 1 : 0);
+            if( flag != oldFlag )
+                ___ports.SendSignal(FilteredStorage.FULL_PORT_ID, flag ? 1 : 0);
             ___filteredStorage.SetLogicMeter(flag);
             return false; // skip the original
         }
