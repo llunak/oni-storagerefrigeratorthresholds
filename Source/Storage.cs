@@ -215,12 +215,11 @@ namespace StorageRefrigeratorThresholds
             bool isOperational = ___operational.IsOperational;
             bool num = component.UpdateLogicState( stored / capacity );
             bool flag = num && isOperational;
-            bool? oldFlag = component.LastSetFlag;
-            if( oldFlag != null )
-                oldFlag &= isOperational;
-            if( flag != oldFlag )
+            if( flag != component.LastSetFlag )
+            {
                 ___ports.SendSignal(FilteredStorage.FULL_PORT_ID, flag ? 1 : 0);
-            component.LastSetFlag = flag;
+                component.LastSetFlag = flag;
+            }
             ___filteredStorage.SetLogicMeter(flag);
             ___operational.SetActive(isOperational);
             return false; // skip the original
@@ -296,12 +295,11 @@ namespace StorageRefrigeratorThresholds
             bool isOperational = ___operational.IsOperational;
             bool num = component.UpdateLogicState( stored / capacity );
             bool flag = num && isOperational;
-            bool? oldFlag = component.LastSetFlag;
-            if( oldFlag != null )
-                oldFlag &= isOperational;
-            if( flag != oldFlag )
+            if( flag != component.LastSetFlag )
+            {
                 ___ports.SendSignal(FilteredStorage.FULL_PORT_ID, flag ? 1 : 0);
-            component.LastSetFlag = flag;
+                component.LastSetFlag = flag;
+            }
             ___filteredStorage.SetLogicMeter(flag);
             return false; // skip the original
         }
