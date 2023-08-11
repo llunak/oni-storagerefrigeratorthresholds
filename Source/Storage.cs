@@ -160,12 +160,14 @@ namespace StorageRefrigeratorThresholds
 
     public class StorageThresholds : ThresholdsBase
     {
-        private static readonly MethodInfo updateLogicAndActiveStateMethod
-            = AccessTools.Method(typeof(StorageLockerSmart),"UpdateLogicAndActiveState");
+        delegate void UpdateLogicAndActiveStateDelegate( StorageLockerSmart locker );
+        private static readonly UpdateLogicAndActiveStateDelegate updateLogicAndActiveStateMethod
+            = AccessTools.MethodDelegate<UpdateLogicAndActiveStateDelegate>(
+                AccessTools.Method(typeof(StorageLockerSmart),"UpdateLogicAndActiveState"));
 
         protected override void UpdateLogicCircuit()
         {
-            updateLogicAndActiveStateMethod.Invoke( GetComponent<StorageLockerSmart>(), null );
+            updateLogicAndActiveStateMethod( GetComponent<StorageLockerSmart>());
         }
     }
 
@@ -197,10 +199,13 @@ namespace StorageRefrigeratorThresholds
     [HarmonyPatch(typeof(StorageLockerSmart))]
     public class StorageLockerSmart_Patch
     {
-        private static readonly MethodInfo getAmountStoredMethod
-            = AccessTools.Method(typeof(FilteredStorage),"GetAmountStored");
-        private static readonly MethodInfo getMaxCapacityMethod
-         = AccessTools.Method(typeof(FilteredStorage),"GetMaxCapacityMinusStorageMargin");
+        delegate float FloatDelegate(FilteredStorage storage);
+        private static readonly FloatDelegate getAmountStoredMethod
+            = AccessTools.MethodDelegate<FloatDelegate>(
+                AccessTools.Method(typeof(FilteredStorage),"GetAmountStored"));
+        private static readonly FloatDelegate getMaxCapacityMethod
+            = AccessTools.MethodDelegate<FloatDelegate>(
+                 AccessTools.Method(typeof(FilteredStorage),"GetMaxCapacityMinusStorageMargin"));
 
         [HarmonyPrefix]
         [HarmonyPatch(nameof(UpdateLogicAndActiveState))]
@@ -210,8 +215,8 @@ namespace StorageRefrigeratorThresholds
             ThresholdsBase component = ThresholdsBase.Get(__instance.gameObject );
             if( component == null )
                 return true;
-            float stored = (float) getAmountStoredMethod.Invoke(___filteredStorage, null );
-            float capacity = (float) getMaxCapacityMethod.Invoke(___filteredStorage, null );
+            float stored = getAmountStoredMethod(___filteredStorage);
+            float capacity = getMaxCapacityMethod(___filteredStorage);
             bool isOperational = ___operational.IsOperational;
             bool num = component.UpdateLogicState( stored / capacity );
             bool flag = num && isOperational;
@@ -246,12 +251,14 @@ namespace StorageRefrigeratorThresholds
 
     public class RefrigeratorThresholds : ThresholdsBase
     {
-        private static readonly MethodInfo updateLogicCircuitMethod
-            = AccessTools.Method(typeof(Refrigerator),"UpdateLogicCircuit");
+        delegate void UpdateLogicCircuitMethod( Refrigerator refrigerator );
+        private static readonly UpdateLogicCircuitMethod updateLogicCircuitMethod
+            = AccessTools.MethodDelegate<UpdateLogicCircuitMethod>(
+                AccessTools.Method(typeof(Refrigerator),"UpdateLogicCircuit"));
 
         protected override void UpdateLogicCircuit()
         {
-            updateLogicCircuitMethod.Invoke( GetComponent<Refrigerator>(), null );
+            updateLogicCircuitMethod( GetComponent<Refrigerator>());
         }
 
     }
@@ -259,10 +266,13 @@ namespace StorageRefrigeratorThresholds
     [HarmonyPatch(typeof(Refrigerator))]
     public class Refrigerator_Patch
     {
-        private static readonly MethodInfo getAmountStoredMethod
-            = AccessTools.Method(typeof(FilteredStorage),"GetAmountStored");
-        private static readonly MethodInfo getMaxCapacityMethod
-         = AccessTools.Method(typeof(FilteredStorage),"GetMaxCapacityMinusStorageMargin");
+        delegate float FloatDelegate(FilteredStorage storage);
+        private static readonly FloatDelegate getAmountStoredMethod
+            = AccessTools.MethodDelegate<FloatDelegate>(
+                AccessTools.Method(typeof(FilteredStorage),"GetAmountStored"));
+        private static readonly FloatDelegate getMaxCapacityMethod
+            = AccessTools.MethodDelegate<FloatDelegate>(
+                AccessTools.Method(typeof(FilteredStorage),"GetMaxCapacityMinusStorageMargin"));
 
         [HarmonyPostfix]
         [HarmonyPatch(nameof(OnCopySettings))]
@@ -290,8 +300,8 @@ namespace StorageRefrigeratorThresholds
             ThresholdsBase component = ThresholdsBase.Get(__instance.gameObject );
             if( component == null )
                 return true;
-            float stored = (float) getAmountStoredMethod.Invoke(___filteredStorage, null );
-            float capacity = (float) getMaxCapacityMethod.Invoke(___filteredStorage, null );
+            float stored = getAmountStoredMethod(___filteredStorage);
+            float capacity = getMaxCapacityMethod(___filteredStorage);
             bool isOperational = ___operational.IsOperational;
             bool num = component.UpdateLogicState( stored / capacity );
             bool flag = num && isOperational;
