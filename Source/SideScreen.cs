@@ -84,7 +84,7 @@ namespace StorageRefrigeratorThresholds
         {
             int newState = state == PCheckBox.STATE_CHECKED ? PCheckBox.STATE_UNCHECKED : PCheckBox.STATE_CHECKED;
             PCheckBox.SetCheckState( checkbox, newState );
-            KFMOD.PlayUISound(GlobalAssets.GetSound("HUD_Click"));
+            KFMOD.PlayUISound(WidgetSoundPlayer.getSoundPath(ToggleSoundPlayer.default_values[state]));
             target.SendGreenOnLow = ( newState == PCheckBox.STATE_CHECKED );
             UpdateActiveRangeSideScreenTooltips();
         }
