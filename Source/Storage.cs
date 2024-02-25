@@ -18,7 +18,7 @@ namespace StorageRefrigeratorThresholds
     // advantages (swapped logic requires not gate for detecting not-enough,
     // which causes false alarms on game start or when power goes out, both
     // of which result in red signal, negated to green and activating notifier).
-    public abstract class ThresholdsBase : KMonoBehaviour, IActivationRangeTarget
+    public abstract class ThresholdsBase : KMonoBehaviour, IActivationRangeTarget, ISim4000ms
     {
         [Serialize]
         private bool sendGreenOnLow = false;
@@ -156,6 +156,34 @@ namespace StorageRefrigeratorThresholds
                 return thresholds;
             return null;
         }
+
+        // Operational.IsOperational returns false if the building is rocket-controlled
+        // and restricted. That means that restricted storage inside a rocket would
+        // always signal false, and so any automation is-full checks for it would be useless.
+        // So check for everything else except for restriction.
+        public bool IsActuallyOperational( Operational operational )
+        {
+            if( operational.IsOperational )
+                return true;
+            foreach( KeyValuePair< Operational.Flag, bool > flag in operational.Flags )
+            {
+                if( !flag.Value && flag.Key != RocketUsageRestriction.rocketUsageAllowed )
+                    return false;
+            }
+            return true;
+        }
+
+        // If inside a rocket, and thus possibly restricted, it is necessary to check periodically.
+        // The reason is that Operational signals changes only when its operational status changes,
+        // so when restricted (and thus not operational) and something else such as loss of power
+        // also makes it inoperational, this change won't be signalled, but IsActuallyOperational()
+        // and thus the logic handling should change.
+        public void Sim4000ms(float dt)
+        {
+            if(!gameObject.GetMyWorld().IsModuleInterior)
+                return;
+            UpdateLogicCircuit();
+        }
     }
 
     public class StorageThresholds : ThresholdsBase
@@ -217,7 +245,7 @@ namespace StorageRefrigeratorThresholds
                 return true;
             float stored = getAmountStoredMethod(___filteredStorage);
             float capacity = getMaxCapacityMethod(___filteredStorage);
-            bool isOperational = ___operational.IsOperational;
+            bool isOperational = component.IsActuallyOperational( ___operational );
             bool num = component.UpdateLogicState( stored / capacity );
             bool flag = num && isOperational;
             if( flag != component.LastSetFlag )
@@ -302,7 +330,7 @@ namespace StorageRefrigeratorThresholds
                 return true;
             float stored = getAmountStoredMethod(___filteredStorage);
             float capacity = getMaxCapacityMethod(___filteredStorage);
-            bool isOperational = ___operational.IsOperational;
+            bool isOperational = component.IsActuallyOperational( ___operational );
             bool num = component.UpdateLogicState( stored / capacity );
             bool flag = num && isOperational;
             if( flag != component.LastSetFlag )
