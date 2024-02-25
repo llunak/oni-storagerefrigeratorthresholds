@@ -193,9 +193,14 @@ namespace StorageRefrigeratorThresholds
             = AccessTools.MethodDelegate<UpdateLogicAndActiveStateDelegate>(
                 AccessTools.Method(typeof(StorageLockerSmart),"UpdateLogicAndActiveState"));
 
+#pragma warning disable CS0649
+        [MyCmpGet]
+        private StorageLockerSmart storageLockerSmart;
+#pragma warning restore CS0649
+
         protected override void UpdateLogicCircuit()
         {
-            updateLogicAndActiveStateMethod( GetComponent<StorageLockerSmart>());
+            updateLogicAndActiveStateMethod( storageLockerSmart );
         }
     }
 
@@ -284,9 +289,14 @@ namespace StorageRefrigeratorThresholds
             = AccessTools.MethodDelegate<UpdateLogicCircuitMethod>(
                 AccessTools.Method(typeof(Refrigerator),"UpdateLogicCircuit"));
 
+#pragma warning disable CS0649
+        [MyCmpGet]
+        private Refrigerator refrigerator;
+#pragma warning restore CS0649
+
         protected override void UpdateLogicCircuit()
         {
-            updateLogicCircuitMethod( GetComponent<Refrigerator>());
+            updateLogicCircuitMethod( refrigerator );
         }
 
     }
