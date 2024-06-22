@@ -296,9 +296,22 @@ namespace StorageRefrigeratorThresholds
 
         protected override void UpdateLogicCircuit()
         {
-            updateLogicCircuitMethod( refrigerator );
+            if( refrigerator != null )
+            {
+                updateLogicCircuitMethod( refrigerator );
+                return;
+            }
+            // The Freezer mod actually copy&pastes the entire Refrigerator class and modifies
+            // that copy *sigh*. And I'm cleanup of that is pending as github PR.
+            Type freezerType = Type.GetType( "Psyko.Freezer.Freezer, Freezer" );
+            if( freezerType != null )
+            {
+                MethodInfo info = AccessTools.Method( freezerType, "UpdateLogicCircuit" );
+                Component freezer = GetComponent( freezerType );
+                if( freezer != null && info != null )
+                    info.Invoke( freezer, null );
+            }
         }
-
     }
 
     [HarmonyPatch(typeof(Refrigerator))]
